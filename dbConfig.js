@@ -1,5 +1,5 @@
 module.exports = dbConfig = {
     user: 'VIASOFTMCP',
     password: 'VIASOFTMCP',
-    connectString: '11.250.34.209:1521/VIASOFT'
+    connectString: '192.168.89.99:1521/ORCL2'
 }
