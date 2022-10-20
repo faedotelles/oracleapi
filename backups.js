@@ -64,3 +64,17 @@
 //         }
 //         return estabs
 // }
+
+// function declareWhere(where, result, and, equal, and2 , equal2){
+//         let filter = ''
+//         if(where && result){
+//             filter += ` where ${where} = ${result}`
+//             if(and && equal){
+//                 filter += ` and ${and} = ${equal}`
+//                 if(and2 && equal2){
+//                     filter += ` and ${and2} = ${equal2}`
+//                 }
+//             }
+//         }
+//         return filter
+// }

@@ -12,25 +12,21 @@ app.use(cors());
 // at the moment, if needed use 'inner join' put in 'table' your 'inner join command' instead of 'pathtable'
 function gerarGet(pathtable, primary, campos, maxRows, secondary, table){
     app.get(`/${pathtable}/:id?/:subid?`, (req, res) => {
-        let filter = declareWhere(primary, req.params.id, secondary, req.params.subid)
-        const sql = `SELECT ${campos ? campos : '*'} FROM VIASOFTMCP.${table ? table : pathtable}` + filter;
+        const sql = createQuery(req.method, pathtable, primary, req.params.id, campos, secondary, req.params.subid, table)
         console.log(sql)
         execSQL(sql, maxRows).then((result) => {res.json(result)});
     })
 }
 
-function declareWhere(where, result, and, equal, and2 , equal2){
-        let filter = ''
-        if(where && result){
-            filter += ` where ${where} = ${result}`
-            if(and && equal){
-                filter += ` and ${and} = ${equal}`
-                if(and2 && equal2){
-                    filter += ` and ${and2} = ${equal2}`
-                }
-            }
+function createQuery(method, pathtable, primary, id, campos, secondary, subid, table){
+    let sql = ''
+    if(method == 'GET'){
+        sql +=` select ${campos} from ${table ? table : pathtable} where ${primary} = ${id} `
+        if(subid){
+            sql += `and ${secondary} = ${subid}`
         }
-        return filter
+    }
+    return sql
 }
 function geraDelete(pathtable, primary, secondary){
     app.delete(`/${pathtable}/:id/:subid`, (req, res) => {
