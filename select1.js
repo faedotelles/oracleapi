@@ -11,15 +11,28 @@ app.use(cors());
 // at the moment, if needed use 'inner join' put in 'table' your 'inner join command' instead of 'pathtable'
 function geraGet(pathtable, primary, campos, maxRows, secondary, table){
     app.get(`/${pathtable}/:id?/:subid?`, (req, res) => {
+        console.time(`RESPONSE TIME request`)
         const sql = createQuery(req.method, pathtable, primary, req.params.id, campos, secondary, req.params.subid, table)
         console.log(sql)
-        execSQL(sql, maxRows).then((result) => {res.json(result)});
+        execSQL(sql, maxRows).then((result) => {res.json(result)
+            });
+            console.timeEnd(`RESPONSE TIME request`)
     })
 }
+app.get('/balanco1/:id/:subid', (req, res) => {
+    console.time('BALANCO1: ')
+    const sql = `SELECT * FROM BALANCO WHERE ESTAB = ${req.params.id} AND IDBALANCO = ${req.params.subid} `
+    execSQL(sql).then((result) => {
+        res.json(result)
+    })
+    console.timeEnd('BALANCO1: ')
+})// somente balanco
 
 function geraGetSQL(sql, pathtable){
+    console.time('geraget')
     app.get(`/${pathtable}/:id?/`, (req, res) => {
-        execSQL(sql).then((result) => {res.json(result)});
+        execSQL(sql).then((result) => {res.json(result)
+        console.timeEnd('geraend')});
     })
 }
 
@@ -43,7 +56,12 @@ function geraDelete(pathtable, primary, secondary){
     })
 }
 
+
+
+
 geraDelete('itemarquivos', 'estab', 'iditem')
+
+geraGet('balanco', 'estab', 'estab,idbalanco,descricao',null , 'idbalanco' )
 
 geraGet('filial', 'estab','estab,razaosoc,cnpj');
 geraGet('itemprvda', 'ip.estab','ip.estab,ip.iditem,i.descricao,ip.preco',1,'ip.iditem','itemprvda ip inner join item i on ip.iditem = i.iditem ');
