@@ -4,13 +4,12 @@ const app = express();
 const fs = require('fs')
 const oracledb = require('oracledb');
 const dbConfig = require('./dbConfig');
-const path = require('path');
 const port = 3000;
 
 app.use(express());
 app.use(cors());
 // at the moment, if needed use 'inner join' put in 'table' your 'inner join command' instead of 'pathtable'
-function gerarGet(pathtable, primary, campos, maxRows, secondary, table){
+function geraGet(pathtable, primary, campos, maxRows, secondary, table){
     app.get(`/${pathtable}/:id?/:subid?`, (req, res) => {
         const sql = createQuery(req.method, pathtable, primary, req.params.id, campos, secondary, req.params.subid, table)
         console.log(sql)
@@ -18,32 +17,44 @@ function gerarGet(pathtable, primary, campos, maxRows, secondary, table){
     })
 }
 
+function geraGetSQL(sql, pathtable){
+    app.get(`/${pathtable}/:id?/`, (req, res) => {
+        execSQL(sql).then((result) => {res.json(result)});
+    })
+}
+
 function createQuery(method, pathtable, primary, id, campos, secondary, subid, table){
     let sql = ''
     if(method == 'GET'){
-        sql +=` select ${campos} from ${table ? table : pathtable} where ${primary} = ${id} `
-        if(subid){
-            sql += `and ${secondary} = ${subid}`
-        }
+        sql +=` select ${campos} from ${table ? table : pathtable} `
+        if(id){
+            sql +=`where ${primary} = ${id} `
+            if(subid){
+                sql += `and ${secondary} = ${subid}`
+            }
+        }     
     }
     return sql
 }
 function geraDelete(pathtable, primary, secondary){
     app.delete(`/${pathtable}/:id/:subid`, (req, res) => {
-        const sql = `DELETE FROM VIASOFTMCP.${pathtable} where ${primary} = ${req.params.id} and ${secondary} = ${req.params.subid}`
-        execSQL(sql).then((result) =>{ res.json(result)});
+        const sql = `delete from viasoftmcp.${pathtable} where ${primary} = ${req.params.id} and ${secondary} = ${req.params.subid}`
+        execSQLBLOB(sql).then((result) =>{ res.json(result)});
     })
 }
 
 geraDelete('itemarquivos', 'estab', 'iditem')
 
-gerarGet('filial', 'estab','ESTAB,RAZAOSOC,CNPJ');
-gerarGet('itemprvda', 'ip.estab','ip.estab,ip.iditem,i.descricao,ip.preco',1,'ip.iditem','itemprvda ip inner join item i on ip.iditem = i.iditem ');
-gerarGet('itemarquivos', 'estab','estab,iditem',null, 'iditem');
-gerarGet('notaconf', 'IDNOTACONF','IDNOTACONF,ESTAB,DESCRICAO',5);
-gerarGet('nota', 'estab', 'idnota,idnotaconf,estab',10, 'idnota');
-gerarGet('pessoa', 'idpessoa', 'idpessoa,nome');
-gerarGet('notaitem', 'estab', 'estab, iditem, idnota',1,'iditem')
+geraGet('filial', 'estab','estab,razaosoc,cnpj');
+geraGet('itemprvda', 'ip.estab','ip.estab,ip.iditem,i.descricao,ip.preco',1,'ip.iditem','itemprvda ip inner join item i on ip.iditem = i.iditem ');
+geraGet('itemarquivos', 'estab','estab,iditem',null, 'iditem');
+geraGet('notaconf', 'idnotaconf','idnotaconf,estab,descricao',5);
+geraGet('nota', 'estab', 'idnota,idnotaconf,estab',10, 'idnota');
+geraGet('pessoa', 'idpessoa', 'idpessoa,nome');
+geraGet('notaitem', 'estab', 'estab, iditem, idnota',1,'iditem')
+geraGetSQL(`select pdfrps from notanfse where idnota = 306264 and estab = 2000`, 'notanfse')
+
+
 
 let libPath;
 
@@ -71,5 +82,24 @@ async function execSQL(query, maxRows) {
         }
     }
 }
+oracledb.fetchAsString = [ oracledb.CLOB ];
+
+async function execSQLBLOB(){
+    let connection
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+        const result = await connection.execute(`select codigobarras from duprec where codigobarras is not null`);
+        
+        if(result.rows.length === 0){
+            console.error('No results');
+        } else {
+            const clob = result.rows[0][0] ;
+            console.log(clob)
+        }
+    } catch (error) {
+        console.error(error)
+    }
+}
 
 app.listen(port);
+
