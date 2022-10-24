@@ -11,28 +11,23 @@ app.use(cors());
 // at the moment, if needed use 'inner join' put in 'table' your 'inner join command' instead of 'pathtable'
 function geraGet(pathtable, primary, campos, maxRows, secondary, table){
     app.get(`/${pathtable}/:id?/:subid?`, (req, res) => {
-        console.time(`RESPONSE TIME request`)
         const sql = createQuery(req.method, pathtable, primary, req.params.id, campos, secondary, req.params.subid, table)
         console.log(sql)
         execSQL(sql, maxRows).then((result) => {res.json(result)
             });
-            console.timeEnd(`RESPONSE TIME request`)
     })
 }
 app.get('/balanco1/:id/:subid', (req, res) => {
-    console.time('BALANCO1: ')
     const sql = `SELECT * FROM BALANCO WHERE ESTAB = ${req.params.id} AND IDBALANCO = ${req.params.subid} `
     execSQL(sql).then((result) => {
         res.json(result)
     })
-    console.timeEnd('BALANCO1: ')
 })// somente balanco
 
 function geraGetSQL(sql, pathtable){
-    console.time('geraget')
     app.get(`/${pathtable}/:id?/`, (req, res) => {
         execSQL(sql).then((result) => {res.json(result)
-        console.timeEnd('geraend')});
+        });
     })
 }
 
@@ -55,7 +50,11 @@ function geraDelete(pathtable, primary, secondary){
         execSQLBLOB(sql).then((result) =>{ res.json(result)});
     })
 }
-
+app.get(`/:table/:id?/:subid?`, (req, res) => {
+        const sql = `SELECT * FROM VIASOFTMCP.${req.params.table}`
+        execSQL(sql,100).then((result) => {res.json(result)
+        });
+    })
 
 
 
@@ -88,6 +87,7 @@ async function execSQL(query, maxRows) {
     try {
         connection = await oracledb.getConnection(dbConfig);
         const result = await connection.execute(query, [], { outFormat: oracledb.OUT_FORMAT_OBJECT, maxRows: maxRows? maxRows : 1000});
+        console.log(result.rows)
         connection.commit()
         return result.rows
     } catch (err) {
@@ -120,4 +120,3 @@ async function execSQLBLOB(){
 }
 
 app.listen(port);
-
