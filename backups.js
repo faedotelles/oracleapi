@@ -1,5 +1,5 @@
 // execSQL(`SELECT ESTAB,RAZAOSOC,CNPJ FROM VIASOFTMCP.FILIAL`).then((result) => {
-//     if (result) console.log(createEstab(result, 1000).ESTAB)
+    // if (result) 
 // })
 
 // async function run() {
@@ -13,7 +13,6 @@
 //         const resultado = result.rows;
 
 //         const object = createEstab(resultado, 2000);
-//         // console.log(object)
 
 //     } catch (err) {
 //         console.error(err)
